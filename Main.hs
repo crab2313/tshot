@@ -8,4 +8,6 @@ import System.Environment(getArgs)
 
 main = do args <- getArgs
 	  ids <- mapM getIDByHash args
-	  mapM_ (putStrLn . show) ids
+	  re <- mapM putImage (zip args ids)
+	  mapM putStrLn (concat $ concat $ concat re)
+	  where putImage (hash, ids) = mapM (getImageByID hash) ids 
