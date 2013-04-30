@@ -3,11 +3,12 @@ module Main(main) where
 import Network.HTTP
 import System.IO
 import TShot
+import TShot.Parse
 import TShot.Network
 import System.Environment(getArgs)
 
 main = do args <- getArgs
-	  ids <- mapM getIDByHash args
+	  ids <- mapM (getIDByHash . parseLink) args
 	  re <- mapM putImage (zip args ids)
 	  let cre = concat $ concat $ concat re
 	  mapM download (zip [1..] cre)
