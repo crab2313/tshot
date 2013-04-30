@@ -8,8 +8,9 @@ import TShot.Network
 import System.Environment(getArgs)
 
 main = do args <- getArgs
-	  ids <- mapM (getIDByHash . parseLink) args
-	  re <- mapM putImage (zip args ids)
+	  let hashs = map parseLink args
+	  ids <- mapM getIDByHash hashs
+	  re <- mapM putImage (zip hashs ids)
 	  let cre = concat $ concat $ concat re
 	  mapM download (zip [1..] cre)
 	  where putImage (hash, ids) = mapM (getImageByID hash) ids 
