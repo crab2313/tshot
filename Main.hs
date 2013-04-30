@@ -9,5 +9,7 @@ import System.Environment(getArgs)
 main = do args <- getArgs
 	  ids <- mapM getIDByHash args
 	  re <- mapM putImage (zip args ids)
-	  mapM putStrLn (concat $ concat $ concat re)
+	  let cre = concat $ concat $ concat re
+	  mapM download (zip [1..] cre)
 	  where putImage (hash, ids) = mapM (getImageByID hash) ids 
+		download (n, link) = downloadFile link (show n)

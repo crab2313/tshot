@@ -4,16 +4,18 @@ module TShot.Network
 	getImageByID,
 	testCode,
 	getObject,
-	testHashCode
+	testHashCode,
+	downloadFile
 	)
 	where
 
 import TShot.Type
 
-import Data.Ratio
-import Data.Maybe
-import Network.HTTP
-import Text.JSON
+import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
+import Data.Ratio (numerator, denominator)
+import Data.Maybe (fromJust)
+import Network.HTTP (getResponseBody, simpleHTTP, getRequest)
+import Text.JSON (decode, fromJSObject, fromJSString, JSValue(..), Result(..))
 
 
 tsHost :: Link
@@ -33,8 +35,16 @@ testCode = do x <- getIDByHash testHashCode
 	      mapM getImage x
 	      where getImage = getImageByID testHashCode
 
+downloadFile :: Link -> FilePath -> IO ()
+downloadFile link fn = do 
+	rsp <- simpleHTTP (getRequest link)
+	body <- getResponseBody rsp
+	fh <- openBinaryFile fn WriteMode
+	hPutStr fh body
+	hClose fh
+
 -- getImageByID:
--- getImageByID :: HashCode -> VideoID -> IO [JSValue]
+getImageByID :: HashCode -> VideoID -> IO [[String]]
 getImageByID hash i = do
 	rsp <- simpleHTTP (getRequest (imageLink hash i))
 	body <- getResponseBody rsp
