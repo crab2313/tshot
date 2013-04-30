@@ -39,7 +39,7 @@ getImageByID hash i = do
 	(return . getResList) body
 
 getResList :: String -> JSValue
-getResList = getObject "res_list"
+getResList = getObjectByJSON "res_list"
 
 -- getIDByHash: 
 getIDByHash :: HashCode -> IO [VideoID]
@@ -49,7 +49,7 @@ getIDByHash hash = do
   (return . map getJSONIndex . getJSONSubList . getJSONResp) body
 
 getJSONResp :: String -> JSValue
-getJSONResp = getObject "resp"
+getJSONResp = getObjectByJSON "resp"
 
 getJSONSubList :: JSValue -> [JSValue]
 getJSONSubList (JSObject x) = (fromArray . lookSubList) (fromJSObject x)
@@ -63,9 +63,15 @@ getJSONIndex = jsVToID . fromJust . lookup "index" . fromJSObject . fromValue
 	      	where n = fromInteger $ numerator ra
 		      d = fromInteger $ denominator ra
 
-getObject :: String -> String -> JSValue
-getObject name json = (fromJust . fromObject . fromResult) x
+-- get JSON object
+getObjectByJSON :: String -> String -> JSValue
+getObjectByJSON name json = (getObject name . fromResult) x
 		where x = decode json :: Result JSValue
 		      fromResult (Ok x) = x
+		      fromResult (Error x) = undefined
+
+getObject :: String -> JSValue -> JSValue
+getObject name = fromJust . fromObject 
+		where fromResult (Ok x) = x
 		      fromResult (Error x) = undefined
 		      fromObject (JSObject y) = lookup name (fromJSObject y)
