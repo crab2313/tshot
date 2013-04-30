@@ -2,7 +2,9 @@ module TShot.Network
 	(
 	getIDByHash,
 	getImageByID,
-	testCode
+	testCode,
+	getObject,
+	testHashCode
 	)
 	where
 
@@ -32,11 +34,19 @@ testCode = do x <- getIDByHash testHashCode
 	      where getImage = getImageByID testHashCode
 
 -- getImageByID:
--- getImageByID :: VideoID -> [Link]
+-- getImageByID :: HashCode -> VideoID -> IO [JSValue]
 getImageByID hash i = do
 	rsp <- simpleHTTP (getRequest (imageLink hash i))
 	body <- getResponseBody rsp
-	(return . getResList) body
+	let arr = fromArray $ getResList body
+	return (map (listToLink . getSNPTList) arr)
+	where fromArray (JSArray a) = a
+	      fromArray _ = []
+	      getSNPTList = getObject "snpt_list"
+
+listToLink :: JSValue -> [String]
+listToLink (JSArray a) = map (getString . getObject "snpt_url") a
+	where getString (JSString s) = fromJSString s
 
 getResList :: String -> JSValue
 getResList = getObjectByJSON "res_list"
