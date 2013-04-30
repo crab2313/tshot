@@ -32,5 +32,9 @@ getVideoIDbyJSON json = fromJust (fromObject (fromResult x))
 
 getVideoID (JSObject x) = (fromArray . lookSubList) (fromJSObject x)
 		where lookSubList sl = fromJust (lookup "subfile_list" sl)
-		      lookIndex jo = lookup "index" (fromJSObject jo)
 		      fromArray (JSArray arr) = arr
+
+
+-- lookIndex :: JSValue -> VideoID
+lookIndex = fromJust . lookup "index" . fromJSObject . fromValue 
+		where fromValue (JSObject o) = o
