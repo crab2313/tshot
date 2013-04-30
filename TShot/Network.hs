@@ -10,6 +10,8 @@ import Text.JSON
 tsHost :: Link
 tsHost = "http://i.vod.xunlei.com/"
 
+defaultUserAgent = undefined
+
 idLink :: HashCode -> Link
 idLink hash = tsHost ++ "/req_subBT/info_hash/" ++ hash ++ "/req_num/2000/req_offset/0/"
 
@@ -23,7 +25,7 @@ testCode = do x <- getVideoIDbyHash testHashCode
 	      return (getVideoIDbyJSON x)
 
 getVideoIDbyJSON :: String -> JSValue
-getVideoIDbyJSON json = fromJust (fromObject (fromResult x))
+getVideoIDbyJSON json = (fromJust . fromObject . fromResult) x
 		where x = decode json :: Result JSValue
 		      fromResult (Ok x) = x
 		      fromResult (Error x) = undefined
