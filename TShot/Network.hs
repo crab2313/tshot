@@ -1,4 +1,9 @@
-module TShot.Network where
+module TShot.Network 
+	(
+	getIDByHash,
+	getImageByID
+	)
+	where
 
 import TShot.Type
 
@@ -18,12 +23,13 @@ idLink hash = tsHost ++ "/req_subBT/info_hash/" ++ hash ++ "/req_num/2000/req_of
 
 testHashCode = "1A046C74B19DBA73E8CE0FDE584349F941AF6A55"
 
-getVideoIDbyHash :: HashCode -> IO String
-getVideoIDbyHash hash = do rsp <- simpleHTTP (getRequest (idLink hash))
-			   getResponseBody rsp
+getImageByID = undefined
 
-testCode = do x <- getVideoIDbyHash testHashCode
-	      return (getJSONSubList $ getJSONResp x)
+getIDByHash :: HashCode -> IO [VideoID]
+getIDByHash hash = do
+  rsp <- simpleHTTP (getRequest (idLink hash))
+  body <- getResponseBody rsp
+  (return . map getJSONIndex . getJSONSubList . getJSONResp) body
 
 getJSONResp :: String -> JSValue
 getJSONResp json = (fromJust . fromObject . fromResult) x
@@ -37,7 +43,6 @@ getJSONSubList (JSObject x) = (fromArray . lookSubList) (fromJSObject x)
 		where lookSubList sl = fromJust (lookup "subfile_list" sl)
 		      fromArray (JSArray arr) = arr
 
--- lookIndex :: JSValue -> VideoID
 getJSONIndex = jsVToID . fromJust . lookup "index" . fromJSObject . fromValue 
 	where fromValue (JSObject o) = o
 	      jsVToID :: JSValue -> VideoID
