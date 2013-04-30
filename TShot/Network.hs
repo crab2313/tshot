@@ -2,6 +2,7 @@ module TShot.Network where
 
 import TShot.Type
 
+import Data.Ratio
 import Data.Maybe
 import Network.HTTP
 import Text.JSON
@@ -22,21 +23,24 @@ getVideoIDbyHash hash = do rsp <- simpleHTTP (getRequest (idLink hash))
 			   getResponseBody rsp
 
 testCode = do x <- getVideoIDbyHash testHashCode
-	      return (getVideoIDbyJSON x)
+	      return (getJSONSubList $ getJSONResp x)
 
-getVideoIDbyJSON :: String -> JSValue
-getVideoIDbyJSON json = (fromJust . fromObject . fromResult) x
+getJSONResp :: String -> JSValue
+getJSONResp json = (fromJust . fromObject . fromResult) x
 		where x = decode json :: Result JSValue
 		      fromResult (Ok x) = x
 		      fromResult (Error x) = undefined
 		      fromObject (JSObject y) = lookup "resp" (fromJSObject y)
 
-
-getVideoID (JSObject x) = (fromArray . lookSubList) (fromJSObject x)
+getJSONSubList :: JSValue -> [JSValue]
+getJSONSubList (JSObject x) = (fromArray . lookSubList) (fromJSObject x)
 		where lookSubList sl = fromJust (lookup "subfile_list" sl)
 		      fromArray (JSArray arr) = arr
 
-
 -- lookIndex :: JSValue -> VideoID
-lookIndex = fromJust . lookup "index" . fromJSObject . fromValue 
-		where fromValue (JSObject o) = o
+getJSONIndex = jsVToID . fromJust . lookup "index" . fromJSObject . fromValue 
+	where fromValue (JSObject o) = o
+	      jsVToID :: JSValue -> VideoID
+	      jsVToID (JSRational _ ra) = floor (n/d)
+	      	where n = fromInteger $ numerator ra
+		      d = fromInteger $ denominator ra
