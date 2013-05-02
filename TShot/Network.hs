@@ -5,6 +5,7 @@ import TShot.Type
 import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
 import Data.Ratio (numerator, denominator)
 import Data.Maybe (fromJust)
+import Network.URI (unEscapeString)
 import Network.HTTP (getResponseBody, simpleHTTP, getRequest)
 import Text.JSON (decode, fromJSObject, fromJSString, JSValue(..), Result(..))
 
@@ -19,10 +20,6 @@ idLink hash = tsHost ++ "/req_subBT/info_hash/" ++ hash ++ "/req_num/2000/req_of
 
 imageLink :: HashCode -> VideoID -> Link
 imageLink hash i = tsHost ++ "req_screensnpt_url?userid=5&url=bt://" ++ hash ++ "/" ++ (show i)
-
-testHashCode = "1A046C74B19DBA73E8CE0FDE584349F941AF6A55"
-
-testCode = getVideosByHash testHashCode
 
 downloadFile :: Link -> FilePath -> IO ()
 downloadFile link fn = do 
@@ -70,11 +67,9 @@ getVideosByHash hash = do
   let idsAndNames = map getIDAndName $ getJSONSubList $ getJSONResp body
   mapM pVideo idsAndNames
   where pVideo (id, name) = do 
-	thumbs <- getThumbsByID hash id
-	return $ Video id name thumbs
-
-getJSONResp :: String -> JSValue
-getJSONResp = getObjectByJSON "resp"
+		thumbs <- getThumbsByID hash id
+		return $ Video id name thumbs
+	getJSONResp = getObjectByJSON "resp"
 
 getJSONSubList :: JSValue -> [JSValue]
 getJSONSubList (JSObject x) = fromArray $ lookSubList $ fromJSObject x
@@ -87,7 +82,7 @@ getIDAndName jv = (index jv, name jv)
 	      index = jsVToID . lookName "index"
 	      lookName n = fromJust . lookup n . fromJSObject . fromValue 
 	      fromValue (JSObject o) = o
-	      jsVToName (JSString s) = fromJSString s
+	      jsVToName (JSString s) = unEscapeString $ fromJSString s
 	      jsVToID :: JSValue -> VideoID
 	      jsVToID (JSRational _ ra) = floor (n/d)
 	      	where n = fromInteger $ numerator ra

@@ -1,6 +1,6 @@
 module Main(main) where
 
-import System.IO
+import Data.List(intercalate)
 import System.Environment(getArgs)
 
 import TShot.Parse
@@ -11,4 +11,4 @@ main = do args <- getArgs
 	  videos <- mapM getVideosByHash hashs
 	  mapM_ (mapM_ $ fetchVideo dir fname) videos
 	  where dir = "."
-		fname id name n = name ++ show(id) ++ show(n)
+		fname id name n = intercalate "-" [name, show(id), show(n)]
