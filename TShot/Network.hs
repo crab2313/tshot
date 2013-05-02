@@ -43,7 +43,7 @@ downloadFile link fn = do
 	hPutStr fh body
 	hClose fh
 
--- getImageByID:
+-- getThumbsByID:
 getThumbsByID :: HashCode -> VideoID -> IO [Thumbnail]
 getThumbsByID hash i = do
 	rsp <- simpleHTTP $ getRequest $ imageLink hash i
