@@ -37,7 +37,7 @@ testCode = do x <- getIDByHash testHashCode
 
 downloadFile :: Link -> FilePath -> IO ()
 downloadFile link fn = do 
-	rsp <- simpleHTTP (getRequest link)
+	rsp <- simpleHTTP $ getRequest link
 	body <- getResponseBody rsp
 	fh <- openBinaryFile fn WriteMode
 	hPutStr fh body
@@ -46,7 +46,7 @@ downloadFile link fn = do
 -- getImageByID:
 getImageByID :: HashCode -> VideoID -> IO [[String]]
 getImageByID hash i = do
-	rsp <- simpleHTTP (getRequest (imageLink hash i))
+	rsp <- simpleHTTP $ getRequest $ imageLink hash i
 	body <- getResponseBody rsp
 	let arr = fromArray $ getResList body
 	return (map (listToLink . getSNPTList) arr)
@@ -64,7 +64,7 @@ getResList = getObjectByJSON "res_list"
 -- getIDByHash: 
 getIDByHash :: HashCode -> IO [VideoID]
 getIDByHash hash = do
-  rsp <- simpleHTTP (getRequest (idLink hash))
+  rsp <- simpleHTTP $ getRequest $ idLink hash
   body <- getResponseBody rsp
   (return . map getJSONIndex . getJSONSubList . getJSONResp) body
 
@@ -72,7 +72,7 @@ getJSONResp :: String -> JSValue
 getJSONResp = getObjectByJSON "resp"
 
 getJSONSubList :: JSValue -> [JSValue]
-getJSONSubList (JSObject x) = (fromArray . lookSubList) (fromJSObject x)
+getJSONSubList (JSObject x) = (fromArray . lookSubList) $ fromJSObject x
 		where lookSubList sl = fromJust (lookup "subfile_list" sl)
 		      fromArray (JSArray arr) = arr
 
