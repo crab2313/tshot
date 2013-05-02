@@ -70,7 +70,7 @@ getJSONResp :: String -> JSValue
 getJSONResp = getObjectByJSON "resp"
 
 getJSONSubList :: JSValue -> [JSValue]
-getJSONSubList (JSObject x) = (fromArray . lookSubList) $ fromJSObject x
+getJSONSubList (JSObject x) = fromArray $ lookSubList $ fromJSObject x
 		where lookSubList sl = fromJust (lookup "subfile_list" sl)
 		      fromArray (JSArray arr) = arr
 
@@ -88,7 +88,7 @@ getIDAndName jv = (index jv, name jv)
 
 -- get JSON object
 getObjectByJSON :: String -> String -> JSValue
-getObjectByJSON name json = (getObject name . fromResult) x
+getObjectByJSON name json = getObject name $ fromResult x
 		where x = decode json :: Result JSValue
 		      fromResult (Ok x) = x
 		      fromResult (Error x) = undefined
@@ -97,4 +97,4 @@ getObject :: String -> JSValue -> JSValue
 getObject name = fromJust . fromObject 
 		where fromResult (Ok x) = x
 		      fromResult (Error x) = undefined
-		      fromObject (JSObject y) = lookup name (fromJSObject y)
+		      fromObject (JSObject y) = lookup name $ fromJSObject y
