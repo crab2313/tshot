@@ -22,5 +22,5 @@ data Video = Video {
     }
 
 data Thumbnail = Thumbnail {
-      tbLinks :: [Link]
-    }
+      tbLinks :: Link
+    } deriving (Show)

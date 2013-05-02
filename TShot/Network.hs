@@ -1,7 +1,7 @@
 module TShot.Network 
 	(
 	getIDByHash,
-	getImageByID,
+	getThumbsByID,
 	testCode,
 	getObject,
 	testHashCode,
@@ -33,7 +33,7 @@ testHashCode = "1A046C74B19DBA73E8CE0FDE584349F941AF6A55"
 
 testCode = do x <- getIDByHash testHashCode
 	      mapM getImage x
-	      where getImage = getImageByID testHashCode
+	      where getImage = getThumbsByID testHashCode
 
 downloadFile :: Link -> FilePath -> IO ()
 downloadFile link fn = do 
@@ -44,19 +44,19 @@ downloadFile link fn = do
 	hClose fh
 
 -- getImageByID:
--- getImageByID :: HashCode -> VideoID -> IO [[String]]
-getImageByID hash i = do
+getThumbsByID :: HashCode -> VideoID -> IO [Thumbnail]
+getThumbsByID hash i = do
 	rsp <- simpleHTTP $ getRequest $ imageLink hash i
 	body <- getResponseBody rsp
 	let arr = fromArray $ getResList body
-	return $ map (listToLink . getSNPTList) arr
+	return $ concat $ map (listToThumbs . getSNPTList) arr
 	where fromArray (JSArray a) = a
 	      fromArray _ = []
 	      getSNPTList = getObject "snpt_list"
 
-listToLink :: JSValue -> [String]
-listToLink (JSArray a) = map (getString . getSNPTUrl) a
-	where getString (JSString s) = fromJSString s
+listToThumbs :: JSValue -> [Thumbnail]
+listToThumbs (JSArray a) = map (thumbFromString . getSNPTUrl) a
+	where thumbFromString (JSString s) = Thumbnail $ fromJSString s
 	      getSNPTUrl = getObject "snpt_url"
 
 getResList :: String -> JSValue
