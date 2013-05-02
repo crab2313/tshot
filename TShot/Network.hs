@@ -22,9 +22,7 @@ imageLink hash i = tsHost ++ "req_screensnpt_url?userid=5&url=bt://" ++ hash ++ 
 
 testHashCode = "1A046C74B19DBA73E8CE0FDE584349F941AF6A55"
 
--- testCode = do x <- getIDByHash testHashCode
---	      mapM getImage x
---	      where getImage = getThumbsByID testHashCode
+testCode = getVideosByHash testHashCode
 
 downloadFile :: Link -> FilePath -> IO ()
 downloadFile link fn = do 
@@ -52,8 +50,6 @@ listToThumbs (JSArray a) = map (thumbFromString . getSNPTUrl) a
 
 getResList :: String -> JSValue
 getResList = getObjectByJSON "res_list"
-
---
 
 -- getVideosByHash: 
 getVideosByHash :: HashCode -> IO [Video]

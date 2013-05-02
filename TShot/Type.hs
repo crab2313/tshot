@@ -8,7 +8,7 @@ type VideoID = Int
 data Torrent = Torrent {
       tVideo :: [Video],
       tHash  :: HashCode
-    }
+    } deriving (Show)
 
 torrentFromHash :: HashCode -> Torrent
 torrentFromHash = undefined
@@ -19,7 +19,7 @@ data Video = Video {
       videoID     :: VideoID,
       videoName   :: String,
       videoThumbs :: [Thumbnail]
-    }
+    } deriving (Show)
 
 data Thumbnail = Thumbnail {
       tbLinks :: Link
