@@ -44,19 +44,20 @@ downloadFile link fn = do
 	hClose fh
 
 -- getImageByID:
-getImageByID :: HashCode -> VideoID -> IO [[String]]
+-- getImageByID :: HashCode -> VideoID -> IO [[String]]
 getImageByID hash i = do
 	rsp <- simpleHTTP $ getRequest $ imageLink hash i
 	body <- getResponseBody rsp
 	let arr = fromArray $ getResList body
-	return (map (listToLink . getSNPTList) arr)
+	return $ map (listToLink . getSNPTList) arr
 	where fromArray (JSArray a) = a
 	      fromArray _ = []
 	      getSNPTList = getObject "snpt_list"
 
 listToLink :: JSValue -> [String]
-listToLink (JSArray a) = map (getString . getObject "snpt_url") a
+listToLink (JSArray a) = map (getString . getSNPTUrl) a
 	where getString (JSString s) = fromJSString s
+	      getSNPTUrl = getObject "snpt_url"
 
 getResList :: String -> JSValue
 getResList = getObjectByJSON "res_list"
