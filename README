@@ -1,0 +1,7 @@
+tshot is a command line tool for fetching thumbnails from the Thunder's server.
+
+usage
+
+$ tshot "your magnet links"
+
+now it only supports magnet links.
