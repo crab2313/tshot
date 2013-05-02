@@ -60,7 +60,7 @@ getVideosByHash :: HashCode -> IO [Video]
 getVideosByHash hash = do
   rsp <- simpleHTTP $ getRequest $ idLink hash
   body <- getResponseBody rsp
-  let idsAndNames = (map getIDAndName . getJSONSubList . getJSONResp) body
+  let idsAndNames = map getIDAndName $ getJSONSubList $ getJSONResp body
   mapM pVideo idsAndNames
   where pVideo (id, name) = do 
 	thumbs <- getThumbsByID hash id
