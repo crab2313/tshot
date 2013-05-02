@@ -1,13 +1,4 @@
-module TShot.Network 
-	(
-	getIDByHash,
-	getThumbsByID,
-	testCode,
-	getObject,
-	testHashCode,
-	downloadFile
-	)
-	where
+module TShot.Network where
 
 import TShot.Type
 
@@ -31,9 +22,9 @@ imageLink hash i = tsHost ++ "req_screensnpt_url?userid=5&url=bt://" ++ hash ++ 
 
 testHashCode = "1A046C74B19DBA73E8CE0FDE584349F941AF6A55"
 
-testCode = do x <- getIDByHash testHashCode
-	      mapM getImage x
-	      where getImage = getThumbsByID testHashCode
+-- testCode = do x <- getIDByHash testHashCode
+--	      mapM getImage x
+--	      where getImage = getThumbsByID testHashCode
 
 downloadFile :: Link -> FilePath -> IO ()
 downloadFile link fn = do 
@@ -62,12 +53,18 @@ listToThumbs (JSArray a) = map (thumbFromString . getSNPTUrl) a
 getResList :: String -> JSValue
 getResList = getObjectByJSON "res_list"
 
--- getIDByHash: 
-getIDByHash :: HashCode -> IO [VideoID]
-getIDByHash hash = do
+--
+
+-- getVideosByHash: 
+getVideosByHash :: HashCode -> IO [Video]
+getVideosByHash hash = do
   rsp <- simpleHTTP $ getRequest $ idLink hash
   body <- getResponseBody rsp
-  (return . map getJSONIndex . getJSONSubList . getJSONResp) body
+  let idsAndNames = (map getIDAndName . getJSONSubList . getJSONResp) body
+  mapM pVideo idsAndNames
+  where pVideo (id, name) = do 
+	thumbs <- getThumbsByID hash id
+	return $ Video id name thumbs
 
 getJSONResp :: String -> JSValue
 getJSONResp = getObjectByJSON "resp"
@@ -77,8 +74,13 @@ getJSONSubList (JSObject x) = (fromArray . lookSubList) $ fromJSObject x
 		where lookSubList sl = fromJust (lookup "subfile_list" sl)
 		      fromArray (JSArray arr) = arr
 
-getJSONIndex = jsVToID . fromJust . lookup "index" . fromJSObject . fromValue 
-	where fromValue (JSObject o) = o
+getIDAndName :: JSValue -> (VideoID, String)
+getIDAndName jv = (index jv, name jv)
+	where name = jsVToName . lookName "name"
+	      index = jsVToID . lookName "index"
+	      lookName n = fromJust . lookup n . fromJSObject . fromValue 
+	      fromValue (JSObject o) = o
+	      jsVToName (JSString s) = fromJSString s
 	      jsVToID :: JSValue -> VideoID
 	      jsVToID (JSRational _ ra) = floor (n/d)
 	      	where n = fromInteger $ numerator ra
