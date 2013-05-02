@@ -10,10 +10,6 @@ data Torrent = Torrent {
       tHash  :: HashCode
     } deriving (Show)
 
-torrentFromHash :: HashCode -> Torrent
-torrentFromHash = undefined
-
-
 -- Video
 data Video = Video {
       videoID     :: VideoID,
@@ -22,5 +18,5 @@ data Video = Video {
     } deriving (Show)
 
 data Thumbnail = Thumbnail {
-      tbLinks :: Link
+      tbLink :: Link
     } deriving (Show)

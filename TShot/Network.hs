@@ -32,6 +32,17 @@ downloadFile link fn = do
 	hPutStr fh body
 	hClose fh
 
+fetchThumnail :: Thumbnail -> FilePath -> IO ()
+fetchThumnail thumb = downloadFile (tbLink thumb)
+
+fetchVideo :: FilePath ->(VideoID -> String -> Int -> String) -> Video -> IO ()
+fetchVideo dir fname video = mapM_ fetch (zip [1..] thumbs)
+	where fetch (i, t) = fetchThumnail t $ dir ++ "/" ++ fname id name i
+	      thumbs = videoThumbs video
+	      id = videoID video
+	      name = videoName video
+
+
 -- getThumbsByID:
 getThumbsByID :: HashCode -> VideoID -> IO [Thumbnail]
 getThumbsByID hash i = do
