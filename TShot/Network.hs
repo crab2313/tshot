@@ -1,6 +1,7 @@
 module TShot.Network where
 
 import TShot.Type
+import TShot.Parse.JSON
 
 import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
 import Data.Ratio (numerator, denominator)
@@ -39,54 +40,22 @@ fetchVideo dir fname video = mapM_ fetch (zip [1..] thumbs)
 	      id = videoID video
 	      name = videoName video
 
-
 -- getThumbsByID:
 getThumbsByID :: HashCode -> VideoID -> IO [Thumbnail]
 getThumbsByID hash i = do
 	rsp <- simpleHTTP $ getRequest $ imageLink hash i
 	body <- getResponseBody rsp
-	let arr = fromArray $ getResList body
-	return $ concat $ map (listToThumbs . getSNPTList) arr
-	where fromArray (JSArray a) = a
-	      fromArray _ = []
-	      getSNPTList = getObject "snpt_list"
-
-listToThumbs :: JSValue -> [Thumbnail]
-listToThumbs (JSArray a) = map (thumbFromString . getSNPTUrl) a
-	where thumbFromString (JSString s) = Thumbnail $ fromJSString s
-	      getSNPTUrl = getObject "snpt_url"
-
-getResList :: String -> JSValue
-getResList = getObjectByJSON "res_list"
+	return $ thumbsFromJSON body
 
 -- getVideosByHash: 
 getVideosByHash :: HashCode -> IO [Video]
 getVideosByHash hash = do
   rsp <- simpleHTTP $ getRequest $ idLink hash
   body <- getResponseBody rsp
-  let idsAndNames = map getIDAndName $ getJSONSubList $ getJSONResp body
-  mapM pVideo idsAndNames
+  mapM pVideo $ videosInfoFromJSON body
   where pVideo (id, name) = do 
 		thumbs <- getThumbsByID hash id
 		return $ Video id name thumbs
-	getJSONResp = getObjectByJSON "resp"
-
-getJSONSubList :: JSValue -> [JSValue]
-getJSONSubList (JSObject x) = fromArray $ lookSubList $ fromJSObject x
-		where lookSubList sl = fromJust (lookup "subfile_list" sl)
-		      fromArray (JSArray arr) = arr
-
-getIDAndName :: JSValue -> (VideoID, String)
-getIDAndName jv = (index jv, name jv)
-	where name = jsVToName . lookName "name"
-	      index = jsVToID . lookName "index"
-	      lookName n = fromJust . lookup n . fromJSObject . fromValue 
-	      fromValue (JSObject o) = o
-	      jsVToName (JSString s) = unEscapeString $ fromJSString s
-	      jsVToID :: JSValue -> VideoID
-	      jsVToID (JSRational _ ra) = floor (n/d)
-	      	where n = fromInteger $ numerator ra
-		      d = fromInteger $ denominator ra
 
 -- get JSON object
 getObjectByJSON :: String -> String -> JSValue
