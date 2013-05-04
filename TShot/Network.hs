@@ -4,12 +4,7 @@ import TShot.Type
 import TShot.Parse.JSON
 
 import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
-import Data.Ratio (numerator, denominator)
-import Data.Maybe (fromJust)
-import Network.URI (unEscapeString)
 import Network.HTTP (getResponseBody, simpleHTTP, getRequest)
-import Text.JSON (decode, fromJSObject, fromJSString, JSValue(..), Result(..))
-
 
 tsHost :: Link
 tsHost = "http://i.vod.xunlei.com/"
