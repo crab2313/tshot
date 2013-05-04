@@ -3,7 +3,7 @@ module Main(main) where
 import Data.List(intercalate)
 import System.Environment(getArgs)
 
-import TShot.Parse
+import TShot.Parse.Link
 import TShot.Network
 
 main = do args <- getArgs
