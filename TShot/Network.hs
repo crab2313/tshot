@@ -56,16 +56,3 @@ getVideosByHash hash = do
   where pVideo (id, name) = do 
 		thumbs <- getThumbsByID hash id
 		return $ Video id name thumbs
-
--- get JSON object
-getObjectByJSON :: String -> String -> JSValue
-getObjectByJSON name json = getObject name $ fromResult x
-		where x = decode json :: Result JSValue
-		      fromResult (Ok x) = x
-		      fromResult (Error x) = undefined
-
-getObject :: String -> JSValue -> JSValue
-getObject name = fromJust . fromObject 
-		where fromResult (Ok x) = x
-		      fromResult (Error x) = undefined
-		      fromObject (JSObject y) = lookup name $ fromJSObject y
