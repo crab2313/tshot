@@ -1,4 +1,11 @@
-module TShot.Network where
+module TShot.Network
+    (
+      downloadFile,
+      getThumbsByID,
+      getVideosByHash,
+      fetchVideo,
+      fetchThumnail
+    ) where
 
 import TShot.Type
 import TShot.Parse.JSON
