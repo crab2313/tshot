@@ -4,18 +4,23 @@ import TShot.Type
 import TShot.Parse.JSON
 
 import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
-import Network.HTTP (getResponseBody, simpleHTTP, getRequest)
+import Network.HTTP
 
 tsHost :: Link
 tsHost = "http://i.vod.xunlei.com/"
 
-defaultUserAgent = undefined
+tShotUserAgent =
+    "Mozilla/5.0 (X11; Linux x86_64; rv:19.0) Gecko/20100101 Firefox/19.0"
 
 idLink :: HashCode -> Link
 idLink hash = tsHost ++ "/req_subBT/info_hash/" ++ hash ++ "/req_num/2000/req_offset/0/"
 
 imageLink :: HashCode -> VideoID -> Link
 imageLink hash i = tsHost ++ "req_screensnpt_url?userid=5&url=bt://" ++ hash ++ "/" ++ (show i)
+
+
+agentGetRequest :: String -> Request_String
+agentGetRequest = replaceHeader HdrUserAgent tShotUserAgent . getRequest 
 
 downloadFile :: Link -> FilePath -> IO ()
 downloadFile link fn = do 
