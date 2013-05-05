@@ -24,7 +24,7 @@ agentGetRequest = replaceHeader HdrUserAgent tShotUserAgent . getRequest
 
 downloadFile :: Link -> FilePath -> IO ()
 downloadFile link fn = do 
-	rsp <- simpleHTTP $ getRequest link
+	rsp <- simpleHTTP $ agentGetRequest link
 	body <- getResponseBody rsp
 	fh <- openBinaryFile fn WriteMode
 	hPutStr fh body
@@ -43,14 +43,14 @@ fetchVideo dir fname video = mapM_ fetch (zip [1..] thumbs)
 -- getThumbsByID:
 getThumbsByID :: HashCode -> VideoID -> IO [Thumbnail]
 getThumbsByID hash i = do
-	rsp <- simpleHTTP $ getRequest $ imageLink hash i
+	rsp <- simpleHTTP $ agentGetRequest $ imageLink hash i
 	body <- getResponseBody rsp
 	return $ thumbsFromJSON body
 
 -- getVideosByHash: 
 getVideosByHash :: HashCode -> IO [Video]
 getVideosByHash hash = do
-  rsp <- simpleHTTP $ getRequest $ idLink hash
+  rsp <- simpleHTTP $ agentGetRequest $ idLink hash
   body <- getResponseBody rsp
   mapM pVideo $ videosInfoFromJSON body
   where pVideo (id, name) = do 
