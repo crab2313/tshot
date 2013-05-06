@@ -12,3 +12,5 @@ parseMagnet :: String -> String
 parseMagnet =
     map toUpper . dropColon . dropColon . dropColon . takeWhile (/= '&')
         where dropColon = tail . dropWhile (/= ':')
+
+-- TODO: parseThunder parseEd2k parseFlashGet
