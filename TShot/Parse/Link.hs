@@ -6,6 +6,7 @@ import Codec.Binary.Base64.String (decode)
 parseLink :: String -> String
 parseLink link = case takeWhile (/= ':') link of
                    "magnet" -> parseMagnet link
+		   "thunder" -> parseThunder link
                    _ -> if length link == 40 then map toUpper link
                                   else error $ "What's the link? " ++ link
                                                   
