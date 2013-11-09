@@ -72,6 +72,7 @@ getVideosByHash hash = do
 -- need rename it soon
 urlToTrt = urlToIds
 
+-- acquire information from server
 acquireInfo :: String -> Proxy -> IO String
 acquireInfo url proxy = do
     (_, rsp) <- browse $ do
@@ -84,3 +85,8 @@ acquireTrtInfo hash = acquireInfo $ urlToTrt hash
 
 acquireIndexInfo :: HashCode -> VideoId -> Proxy -> IO String
 acquireIndexInfo hash i = acquireInfo $ urlToImages hash i
+
+-- generate higher order structures from raw input
+-- json related stuff
+acquireTorrent = undefined
+acquireVideo = undefined
