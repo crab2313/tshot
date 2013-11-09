@@ -2,7 +2,7 @@ module Network.TShot.Types where
 
 type HashCode = String
 type Link = String
-type VideoID = Int
+type VideoId = Int
 
 -- Torrent:
 data Torrent = Torrent {
@@ -12,7 +12,7 @@ data Torrent = Torrent {
 
 -- Video
 data Video = Video {
-      videoID     :: VideoID,
+      videoId     :: VideoId,
       videoName   :: String,
       videoThumbs :: [Thumbnail]
     } deriving (Show)
