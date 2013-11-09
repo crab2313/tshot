@@ -5,6 +5,7 @@ import Network.TShot.Types
 
 import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
 import Network.HTTP
+import Network.Browser
 import Network.HTTP.Proxy
 
 import Data.List (intercalate)
@@ -26,8 +27,9 @@ urlToImages hash i = intercalate "/" uriList
                    hash, show i]
 
 getTShotRequest :: String -> Request_String
-getTShotRequest = replaceHeader HdrUserAgent userAgent . getRequest
+getTShotRequest = replaceHeader HdrUserAgent userAgent . getRequest 
 
+-- old code bases
 downloadFile :: Link -> FilePath -> IO ()
 downloadFile link fn = do 
 	rsp <- simpleHTTP $ getTShotRequest link
@@ -63,3 +65,22 @@ getVideosByHash hash = do
   where pVideo (id, name) = do 
 		thumbs <- getThumbsByID hash id
 		return $ Video id name thumbs
+
+
+-- new code bases
+
+-- need rename it soon
+urlToTrt = urlToIds
+
+acquireInfo :: String -> Proxy -> IO String
+acquireInfo url proxy = do
+    (_, rsp) <- browse $ do
+        setProxy proxy
+        request $ getTShotRequest url
+    return $ rspBody rsp
+
+acquireTrtInfo :: HashCode -> Proxy -> IO String
+acquireTrtInfo hash = acquireInfo $ urlToTrt hash
+
+acquireIndexInfo :: HashCode -> VideoId -> Proxy -> IO String
+acquireIndexInfo hash i = acquireInfo $ urlToImages hash i
