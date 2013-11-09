@@ -1,10 +1,10 @@
-module TShot.Parse.JSON 
+module Network.TShot.JSON 
     (
      thumbsFromJSON,
      videosInfoFromJSON
     ) where
 
-import TShot.Type
+import Network.TShot.Types
 
 import Data.Maybe (fromJust)
 import Data.Ratio (numerator, denominator)

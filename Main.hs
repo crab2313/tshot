@@ -3,8 +3,8 @@ module Main(main) where
 import Data.List(intercalate)
 import System.Environment(getArgs)
 
-import TShot.Parse.Link
-import TShot.Network
+import Network.TShot.Parser
+import Network.TShot.Remote
 
 main = do
   args <- getArgs

@@ -1,4 +1,4 @@
-module TShot.Parse.Link where
+module Network.TShot.Parser (parseLink) where
 
 import Data.Char (toUpper)
 import Codec.Binary.Base64.String (decode)

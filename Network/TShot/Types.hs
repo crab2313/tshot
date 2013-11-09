@@ -1,4 +1,4 @@
-module TShot.Type where
+module Network.TShot.Types where
 
 type HashCode = String
 type Link = String

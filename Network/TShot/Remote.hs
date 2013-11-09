@@ -1,14 +1,7 @@
-module TShot.Network
-    (
-      downloadFile,
-      getThumbsByID,
-      getVideosByHash,
-      fetchVideo,
-      fetchThumnail
-    ) where
+module Network.TShot.Remote where
 
-import TShot.Type
-import TShot.Parse.JSON
+import Network.TShot.JSON
+import Network.TShot.Types
 
 import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
 import Network.HTTP
