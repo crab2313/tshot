@@ -5,17 +5,18 @@ import Network.TShot.Types
 
 import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
 import Network.HTTP
+import Network.HTTP.Proxy
 
 import Data.List (intercalate)
 
 thunderHost :: Link
 thunderHost = "http://i.vod.xunlei.com/"
 
-tShotUserAgent =
+userAgent =
     "Mozilla/5.0 (X11; Linux x86_64; rv:19.0) Gecko/20100101 Firefox/19.0"
 
-idLink :: HashCode -> String
-idLink hash = intercalate "/" uriList
+urlToIds :: HashCode -> String
+urlToIds hash = intercalate "/" uriList
   where uriList = [thunderHost, "req_subBT", "info_hash",
                    hash, "req_num", "2", "req_offset", "0"]
 
@@ -24,12 +25,12 @@ urlToImages hash i = intercalate "/" uriList
   where uriList = [thunderHost, "req_screensnpt_url?userid=5&url=bt:/",
                    hash, show i]
 
-agentGetRequest :: String -> Request_String
-agentGetRequest = replaceHeader HdrUserAgent tShotUserAgent . getRequest 
+getTShotRequest :: String -> Request_String
+getTShotRequest = replaceHeader HdrUserAgent userAgent . getRequest
 
 downloadFile :: Link -> FilePath -> IO ()
 downloadFile link fn = do 
-	rsp <- simpleHTTP $ agentGetRequest link
+	rsp <- simpleHTTP $ getTShotRequest link
 	body <- getResponseBody rsp
 	fh <- openBinaryFile fn WriteMode
 	hPutStr fh body
@@ -49,14 +50,14 @@ fetchVideo dir fname video = mapM_ fetch (zip [1..] thumbs)
 -- getThumbsByID:
 getThumbsByID :: HashCode -> VideoId -> IO [Thumbnail]
 getThumbsByID hash i = do
-	rsp <- simpleHTTP $ agentGetRequest $ urlToImages hash i
+	rsp <- simpleHTTP $ getTShotRequest $ urlToImages hash i
 	body <- getResponseBody rsp
 	return $ thumbsFromJSON body
 
 -- getVideosByHash: 
 getVideosByHash :: HashCode -> IO [Video]
 getVideosByHash hash = do
-  rsp <- simpleHTTP $ agentGetRequest $ idLink hash
+  rsp <- simpleHTTP $ getTShotRequest $ urlToIds hash
   body <- getResponseBody rsp
   mapM pVideo $ videosInfoFromJSON body
   where pVideo (id, name) = do 
