@@ -3,3 +3,4 @@ TODO: fully proxy support
 TODO: A more flexible UI
 TODO: Network.TShot 
 TODO: A simple graphical user interface
+TODO: drop Text.JSON, prefer Data.Aeson
