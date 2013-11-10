@@ -136,9 +136,17 @@ data TrtVideoRsp = TrtVideoRsp {
     } deriving (Show)
 
 data TrtVideoSNPT = TrtVideoSNPT {
-    tVideoSNPTUrls :: [TrtVideoSNPTUrl]
+    tVideoSNPTUrls :: String
     } deriving (Show)
 
-data TrtVideoSNPTUrl = TrtVideoSNPTUrl {
-    tVideoSNPTUrl :: String
-    } deriving (Show)
+data TrtVideoSNPTUrl = TrtVideoSNPTUrl String
+
+instance FromJSON TrtVideoInfo where
+    parseJSON (Object v) = TrtVideoInfo <$> v .: "res_list" <*> v .: "ret"
+
+instance FromJSON TrtVideoRsp where
+    parseJSON (Object v) = TrtVideoRsp <$> v .: "gcid" <*> v .: "snpt_list"
+   			  <*> v .: "specid"
+
+instance FromJSON TrtVideoSNPT where
+    parseJSON (Object v) = TrtVideoSNPT <$> v .: "snpt_url"
