@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Network.TShot.Remote where
 
 import Network.TShot.JSON
@@ -7,7 +8,9 @@ import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
 import Network.HTTP
 import Network.Browser
 import Network.HTTP.Proxy
+import Data.Aeson
 
+import Control.Applicative ((<$>), (<*>))
 import Data.List (intercalate)
 
 thunderHost :: Link
@@ -84,5 +87,58 @@ acquireIndexInfo hash i = acquireInfo $ urlToImages hash i
 
 -- generate higher order structures from raw input
 -- json related stuff
-acquireTorrent = undefined
+-- acquireTorrent :: String -> Maybe TrtInfo
+acquireTorrent json = decode json :: Maybe TrtInfo
 acquireVideo = undefined
+
+
+-- json related
+
+-- TrtInfo
+data TrtInfo = TrtInfo {
+    tInfoRsp :: TrtInfoRsp
+    } deriving (Show)
+
+data TrtInfoRsp = TrtInfoRsp {
+    tInfoRspUserId :: Int,
+    tInfoRspRet :: Int,
+    tInfoRspSubfiles :: [TrtInfoSubfile]
+    -- info hash ?
+    } deriving (Show)               
+
+data TrtInfoSubfile = TrtInfoSubfile {
+    tInfoSubfileName :: String,
+    tInfoSubfileSize :: Int,
+    tInfoSubfileIndex :: Int
+    } deriving (Show)
+
+instance FromJSON TrtInfo where
+    parseJSON (Object v) = TrtInfo <$> v .: "resp"
+
+instance FromJSON TrtInfoRsp where
+    parseJSON (Object v) = TrtInfoRsp <$> v .: "userid" <*>
+                           v .: "ret" <*> v .: "subfile_list"
+
+instance FromJSON TrtInfoSubfile where
+    parseJSON (Object v) = TrtInfoSubfile <$> v .: "name" <*>
+                           v .: "file_size" <*> v .: "index"
+
+-- TrtVideoInfo
+data TrtVideoInfo = TrtVideoInfo {
+    tVideoResList :: [TrtVideoRsp],
+    tVideoRet :: Int
+    } deriving (Show)
+
+data TrtVideoRsp = TrtVideoRsp {
+    tVideoRspGCID :: String,
+    tVideoRspSNPTList :: [TrtVideoSNPT], 
+    tVideoRspSpecId :: Int
+    } deriving (Show)
+
+data TrtVideoSNPT = TrtVideoSNPT {
+    tVideoSNPTUrls :: [TrtVideoSNPTUrl]
+    } deriving (Show)
+
+data TrtVideoSNPTUrl = TrtVideoSNPTUrl {
+    tVideoSNPTUrl :: String
+    } deriving (Show)
