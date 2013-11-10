@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Network.TShot.Remote where
 
-import Network.TShot.JSON
 import Network.TShot.Types
 
 import System.IO (openBinaryFile, hPutStr, hClose, IOMode(..))
@@ -12,6 +11,7 @@ import Data.Aeson
 
 import Control.Applicative ((<$>), (<*>))
 import Data.List (intercalate)
+import qualified Data.ByteString.Lazy.Char8 as BL
 
 thunderHost :: Link
 thunderHost = "http://i.vod.xunlei.com/"
@@ -33,44 +33,6 @@ urlToImages hash i = intercalate "/" uriList
 getTShotRequest :: String -> Request_String
 getTShotRequest = replaceHeader HdrUserAgent userAgent . getRequest 
 
--- old code bases
-downloadFile :: Link -> FilePath -> IO ()
-downloadFile link fn = do 
-	rsp <- simpleHTTP $ getTShotRequest link
-	body <- getResponseBody rsp
-	fh <- openBinaryFile fn WriteMode
-	hPutStr fh body
-	hClose fh
-
-fetchThumnail :: Thumbnail -> FilePath -> IO ()
-fetchThumnail thumb = downloadFile (tbLink thumb)
-
-
-fetchVideo :: FilePath ->(VideoId -> String -> Int -> String) -> Video -> IO ()
-fetchVideo dir fname video = mapM_ fetch (zip [1..] thumbs)
-	where fetch (i, t) = fetchThumnail t $ dir ++ "/" ++ fname id name i
-	      thumbs = videoThumbs video
-	      id = videoId video
-	      name = videoName video
-
--- getThumbsByID:
-getThumbsByID :: HashCode -> VideoId -> Proxy -> IO [Thumbnail]
-getThumbsByID hash i proxy = do
-        body <- acquireIndexInfo hash i proxy
-	return $ thumbsFromJSON body
-
--- getVideosByHash: 
-getVideosByHash :: Proxy -> HashCode ->  IO [Video]
-getVideosByHash proxy hash = do
-  body <- acquireTrtInfo hash proxy
-  mapM pVideo $ videosInfoFromJSON body
-  where pVideo (id, name) = do 
-		thumbs <- getThumbsByID hash id proxy
-		return $ Video id name thumbs
-
-
--- new code bases
-
 -- acquire information from server
 acquireInfo :: String -> Proxy -> IO String
 acquireInfo url proxy = do
@@ -82,18 +44,46 @@ acquireInfo url proxy = do
 acquireTrtInfo :: HashCode -> Proxy -> IO String
 acquireTrtInfo hash = acquireInfo $ urlToTrt hash
 
-acquireIndexInfo :: HashCode -> VideoId -> Proxy -> IO String
-acquireIndexInfo hash i = acquireInfo $ urlToImages hash i
+acquireVideoThumbs :: HashCode -> VideoId -> Proxy -> IO String
+acquireVideoThumbs hash i = acquireInfo $ urlToImages hash i
 
 -- generate higher order structures from raw input
 -- json related stuff
--- acquireTorrent :: String -> Maybe TrtInfo
-acquireTorrent json = decode json :: Maybe TrtInfo
-acquireVideo = undefined
+acquireThumbs :: HashCode -> VideoId -> Proxy -> IO (Maybe [String])
+acquireThumbs hash i proxy = do
+    info <- acquireVideoThumbs hash i proxy 
+    case decode (BL.pack info) :: Maybe TrtVideoInfo of
+        Just thumbsInfo -> if tVideoRet thumbsInfo /= 0
+                           then return Nothing
+                           else return $ Just $ stripThumbs thumbsInfo
+        Nothing -> return Nothing
+  where stripThumbs ti = map tVideoSNPTUrls $ tVideoRspSNPTList $
+                         last $ tVideoResList ti
 
+acquireTorrent :: HashCode -> Proxy -> IO (Maybe Torrent)
+acquireTorrent hash proxy = do
+    info <- acquireTrtInfo hash proxy
+    case decode (BL.pack info) :: Maybe TrtInfo of
+        Nothing -> return Nothing
+        Just ti -> if (tInfoRspRet $ tInfoRsp ti) /= 0
+                   then return Nothing
+                   else stripTrtRsp $ tInfoRsp ti
+                     
+  where stripTrtRsp :: TrtInfoRsp -> IO (Maybe Torrent)
+        stripTrtRsp rsp = do
+            tVideo <- mapM stripSubfile $ tInfoRspSubfiles rsp
+            return $ Just $ Torrent hash tVideo
+        stripSubfile :: TrtInfoSubfile -> IO (Maybe Video)
+        stripSubfile sub = do
+            thumbs <- acquireThumbs hash index proxy
+            case thumbs of
+                Nothing -> return Nothing
+                Just t -> return $ Just $ Video index name t size
+          where index = tInfoSubfileIndex sub
+                name = tInfoSubfileName sub
+                size = tInfoSubfileSize sub
 
 -- json related
-
 -- TrtInfo
 data TrtInfo = TrtInfo {
     tInfoRsp :: TrtInfoRsp
