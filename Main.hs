@@ -13,7 +13,8 @@ import Network.TShot.Remote
 main = do
   args <- getArgs
   let hashs = map parseLink args
-  videos <- mapM getVideosByHash hashs
+  proxy <- checkProxy
+  videos <- mapM (getVideosByHash proxy)hashs
   mapM_ (mapM_ $ fetchVideo dir fname) videos
       where dir = "."
 	    fname id name n = intercalate "-" [eName, show(id), show(n), ".tb"]

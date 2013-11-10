@@ -6,8 +6,8 @@ type VideoId = Int
 
 -- Torrent:
 data Torrent = Torrent {
-      tVideo :: [Video],
-      tHash  :: HashCode
+      trtVideo :: [Maybe Video],
+      trtHash  :: HashCode
 -- record number ? (avaliable)
     } deriving (Show)
 

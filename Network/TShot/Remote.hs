@@ -50,20 +50,18 @@ fetchVideo dir fname video = mapM_ fetch (zip [1..] thumbs)
 	      name = videoName video
 
 -- getThumbsByID:
-getThumbsByID :: HashCode -> VideoId -> IO [Thumbnail]
-getThumbsByID hash i = do
-	rsp <- simpleHTTP $ getTShotRequest $ urlToImages hash i
-	body <- getResponseBody rsp
+getThumbsByID :: HashCode -> VideoId -> Proxy -> IO [Thumbnail]
+getThumbsByID hash i proxy = do
+        body <- acquireIndexInfo hash i proxy
 	return $ thumbsFromJSON body
 
 -- getVideosByHash: 
-getVideosByHash :: HashCode -> IO [Video]
-getVideosByHash hash = do
-  rsp <- simpleHTTP $ getTShotRequest $ urlToIds hash
-  body <- getResponseBody rsp
+getVideosByHash :: Proxy -> HashCode ->  IO [Video]
+getVideosByHash proxy hash = do
+  body <- acquireTrtInfo hash proxy
   mapM pVideo $ videosInfoFromJSON body
   where pVideo (id, name) = do 
-		thumbs <- getThumbsByID hash id
+		thumbs <- getThumbsByID hash id proxy
 		return $ Video id name thumbs
 
 
