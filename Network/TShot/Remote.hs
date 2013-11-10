@@ -16,8 +16,9 @@ thunderHost = "http://i.vod.xunlei.com/"
 userAgent =
     "Mozilla/5.0 (X11; Linux x86_64; rv:19.0) Gecko/20100101 Firefox/19.0"
 
-urlToIds :: HashCode -> String
-urlToIds hash = intercalate "/" uriList
+-- use something like URI builder
+urlToTrt :: HashCode -> String
+urlToTrt hash = intercalate "/" uriList
   where uriList = [thunderHost, "req_subBT", "info_hash",
                    hash, "req_num", "2", "req_offset", "0"]
 
@@ -66,9 +67,6 @@ getVideosByHash proxy hash = do
 
 
 -- new code bases
-
--- need rename it soon
-urlToTrt = urlToIds
 
 -- acquire information from server
 acquireInfo :: String -> Proxy -> IO String
